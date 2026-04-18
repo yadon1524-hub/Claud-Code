@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Yu Gothic', 'Meiryo', 'MS Gothic', 'Hiragino Kaku Gothic Pro', sans-serif;
+      font-size: 13px;
+      color: #222;
+      padding: 30px 40px;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      letter-spacing: 8px;
+      margin-bottom: 24px;
+      color: #111;
+    }
+    .meta-block {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .client-block { font-size: 14px; }
+    .client-name { font-size: 18px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 2px; margin-bottom: 4px; }
+    .client-suffix { font-size: 12px; color: #555; }
+    .invoice-info { text-align: right; font-size: 12px; color: #444; }
+    .invoice-info td { padding: 2px 0 2px 16px; }
+    .invoice-info td:first-child { color: #888; }
+
+    .total-box {
+      text-align: right;
+      margin: 16px 0;
+      padding: 10px 16px;
+      background: #f5f5f5;
+      border-left: 4px solid #2c5282;
+    }
+    .total-box .label { font-size: 12px; color: #666; }
+    .total-box .amount { font-size: 22px; font-weight: bold; color: #2c5282; }
+
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    table.items th {
+      background: #2c5282;
+      color: white;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: normal;
+    }
+    table.items td {
+      padding: 7px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 12px;
+    }
+    table.items tr:nth-child(even) td { background: #f8fafc; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+
+    .subtotal-block {
+      width: 240px;
+      margin-left: auto;
+      margin-top: 8px;
+    }
+    .subtotal-block table { width: 100%; border-collapse: collapse; }
+    .subtotal-block td { padding: 5px 8px; font-size: 12px; }
+    .subtotal-block td:last-child { text-align: right; }
+    .subtotal-block .total-row td {
+      font-size: 14px;
+      font-weight: bold;
+      border-top: 2px solid #2c5282;
+      padding-top: 8px;
+      color: #2c5282;
+    }
+
+    .footer {
+      margin-top: 32px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #555;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 16px;
+    }
+    .bank-info { line-height: 1.8; }
+    .bank-info strong { font-size: 12px; color: #333; }
+    .seller-info { text-align: right; line-height: 1.8; }
+    .seller-name { font-size: 15px; font-weight: bold; color: #111; }
+  </style>
+</head>
+<body>
+  <h1>請 求 書</h1>
+
+  <div class="meta-block">
+    <div class="client-block">
+      <div class="client-name">{{ client }} 御中</div>
+      <div style="margin-top:6px; font-size:12px;">件名：{{ subject }}</div>
+    </div>
+    <table class="invoice-info">
+      <tr><td>請求番号</td><td>{{ invoice_no }}</td></tr>
+      <tr><td>発行日</td><td>{{ issue_date }}</td></tr>
+      <tr><td>お支払期限</td><td>{{ due_date }}</td></tr>
+    </table>
+  </div>
+
+  <div class="total-box">
+    <div class="label">合計金額（税込）</div>
+    <div class="amount">￥{{ "{:,}".format(total) }}</div>
+  </div>
+
+  <table class="items">
+    <thead>
+      <tr>
+        <th style="width:50%">品目・内容</th>
+        <th class="text-center" style="width:10%">数量</th>
+        <th class="text-right" style="width:20%">単価</th>
+        <th class="text-right" style="width:20%">金額</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.name }}</td>
+        <td class="text-center">{{ item.qty }}</td>
+        <td class="text-right">￥{{ "{:,}".format(item.unit_price) }}</td>
+        <td class="text-right">￥{{ "{:,}".format(item.amount) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="subtotal-block">
+    <table>
+      <tr><td>小計</td><td>￥{{ "{:,}".format(subtotal) }}</td></tr>
+      <tr><td>消費税（10%）</td><td>￥{{ "{:,}".format(tax) }}</td></tr>
+      <tr class="total-row"><td>合計</td><td>￥{{ "{:,}".format(total) }}</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div class="bank-info">
+      <strong>お振込先</strong><br>
+      {{ seller.振込先銀行 }} {{ seller.振込先支店 }}<br>
+      {{ seller.振込先種別 }} {{ seller.振込先番号 }}<br>
+      口座名義：{{ seller.振込先名義 }}
+    </div>
+    <div class="seller-info">
+      <div class="seller-name">{{ seller.屋号 }}</div>
+      {{ seller.代表 }}<br>
+      {{ seller.住所 }}<br>
+      {{ seller.メール }}
+    </div>
+  </div>
+</body>
+</html>
