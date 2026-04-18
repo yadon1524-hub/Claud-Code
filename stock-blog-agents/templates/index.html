@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📈 株式投資ブログ AI作成</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3248;
+    --accent: #4f8ef7;
+    --accent2: #6c63ff;
+    --green: #34d399;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Yu Gothic UI', 'Hiragino Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ヘッダー */
+  header {
+    background: linear-gradient(135deg, #1a1d27 0%, #12152a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header h1 { font-size: 20px; font-weight: 700; }
+  header span { font-size: 24px; }
+  .badge {
+    margin-left: auto;
+    background: rgba(79,142,247,.15);
+    color: var(--accent);
+    border: 1px solid rgba(79,142,247,.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+
+  /* レイアウト */
+  .container { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+
+  /* APIキー設定バナー */
+  .api-banner {
+    background: linear-gradient(135deg, rgba(251,191,36,.1), rgba(251,191,36,.05));
+    border: 1px solid rgba(251,191,36,.3);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .api-banner.hidden { display: none; }
+  .api-banner p { font-size: 14px; color: var(--yellow); flex: 1; min-width: 200px; }
+  .api-banner input {
+    flex: 2;
+    min-width: 260px;
+    background: rgba(0,0,0,.3);
+    border: 1px solid rgba(251,191,36,.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .api-banner input:focus { outline: none; border-color: var(--yellow); }
+  .btn-save {
+    background: var(--yellow);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-save:hover { opacity: .9; }
+
+  /* 入力カード */
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .input-card label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .input-row { display: flex; gap: 12px; }
+  .input-row input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-size: 16px;
+    transition: border-color .2s;
+  }
+  .input-row input:focus { outline: none; border-color: var(--accent); }
+  .input-row input::placeholder { color: var(--muted); }
+  .btn-generate {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn-generate:hover { opacity: .9; transform: translateY(-1px); }
+  .btn-generate:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .examples { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .examples span {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 10px;
+    margin: 3px 4px 3px 0;
+    cursor: pointer;
+    transition: border-color .2s;
+  }
+  .examples span:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* エージェント進捗 */
+  .agents-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .agents-card h2 { font-size: 14px; color: var(--muted); font-weight: 600; margin-bottom: 16px; text-transform: uppercase; letter-spacing: .5px; }
+  .agents-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .agent-step {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    transition: all .3s;
+  }
+  .agent-step .icon { font-size: 22px; margin-bottom: 6px; }
+  .agent-step .name { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .agent-step .role { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .agent-step .status {
+    font-size: 11px;
+    color: var(--muted);
+    background: rgba(255,255,255,.05);
+    border-radius: 20px;
+    padding: 3px 8px;
+    display: inline-block;
+  }
+  .agent-step.running {
+    border-color: var(--accent);
+    background: rgba(79,142,247,.08);
+    box-shadow: 0 0 12px rgba(79,142,247,.2);
+  }
+  .agent-step.running .status { background: rgba(79,142,247,.2); color: var(--accent); }
+  .agent-step.done {
+    border-color: var(--green);
+    background: rgba(52,211,153,.06);
+  }
+  .agent-step.done .status { background: rgba(52,211,153,.2); color: var(--green); }
+
+  /* メインコンテンツ */
+  .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+
+  .article-card, .log-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .card-header h3 { font-size: 14px; font-weight: 700; }
+  .btn-dl {
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: none;
+  }
+  .btn-dl:hover { opacity: .85; }
+
+  #article-body {
+    padding: 24px;
+    min-height: 420px;
+    font-size: 14px;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    max-height: 600px;
+  }
+  .placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--muted);
+    gap: 12px;
+  }
+  .placeholder .big { font-size: 48px; }
+
+  #log-body {
+    padding: 16px;
+    height: 460px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    color: #a0aec0;
+    background: #0d1117;
+  }
+  .log-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.03); }
+  .log-line.ok { color: var(--green); }
+  .log-line.err { color: var(--red); }
+
+  /* スピナー */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid transparent;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* レスポンシブ */
+  @media (max-width: 768px) {
+    .agents-grid { grid-template-columns: repeat(3, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+    .input-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span>📈</span>
+  <h1>株式投資ブログ AI作成アプリ</h1>
+  <div class="badge">🔒 localhost のみ</div>
+</header>
+
+<div class="container">
+
+  <!-- APIキー設定バナー -->
+  <div class="api-banner {% if has_key %}hidden{% endif %}" id="api-banner">
+    <p>🔑 <strong>まずAPIキーを設定してください</strong>（一度設定すれば次回から不要）</p>
+    <input type="password" id="api-key-input" placeholder="sk-ant-api03-xxxxxxxxxx">
+    <button class="btn-save" onclick="saveApiKey()">保存する</button>
+  </div>
+
+  <!-- 銘柄入力 -->
+  <div class="input-card">
+    <label>🔍 銘柄名またはティッカーを入力</label>
+    <div class="input-row">
+      <input type="text" id="ticker" placeholder="例: トヨタ自動車 / 7203 / NVIDIA"
+             onkeydown="if(event.key==='Enter')startGenerate()">
+      <button class="btn-generate" id="gen-btn" onclick="startGenerate()">▶ 記事を生成</button>
+    </div>
+    <div class="examples">
+      例：
+      <span onclick="setTicker('トヨタ自動車')">トヨタ自動車</span>
+      <span onclick="setTicker('NTT')">NTT</span>
+      <span onclick="setTicker('KDDI')">KDDI</span>
+      <span onclick="setTicker('三菱HCキャピタル')">三菱HCキャピタル</span>
+      <span onclick="setTicker('積水ハウス')">積水ハウス</span>
+      <span onclick="setTicker('花王')">花王</span>
+    </div>
+  </div>
+
+  <!-- エージェント進捗 -->
+  <div class="agents-card">
+    <h2>🤖 エージェントの進捗</h2>
+    <div class="agents-grid">
+      <div class="agent-step" id="a-editor">
+        <div class="icon">📋</div>
+        <div class="name">編集長</div>
+        <div class="role">方針決定</div>
+        <div class="status">待機中</div>
+      </div>
+      <div class="agent-step" id="a-researcher">
+        <div class="icon">🔍</div>
+        <div class="name">株調</div>
+        <div class="role">情報収集</div>
+        <div class="status">待機中</div>
+      </div>
+      <div class="agent-step" id="a-analyst">
+        <div class="icon">📊</div>
+        <div class="name">分析係</div>
+        <div class="role">分析</div>
+        <div class="status">待機中</div>
+      </div>
+      <div class="agent-step" id="a-writer">
+        <div class="icon">✍️</div>
+        <div class="name">ブログ作成係</div>
+        <div class="role">執筆</div>
+        <div class="status">待機中</div>
+      </div>
+      <div class="agent-step" id="a-final">
+        <div class="icon">✅</div>
+        <div class="name">編集長</div>
+        <div class="role">最終チェック</div>
+        <div class="status">待機中</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 記事 & ログ -->
+  <div class="main-grid">
+    <div class="article-card">
+      <div class="card-header">
+        <h3>📄 完成記事</h3>
+        <button class="btn-dl" id="dl-btn">💾 ダウンロード</button>
+      </div>
+      <div id="article-body">
+        <div class="placeholder">
+          <div class="big">📝</div>
+          <div>銘柄を入力して「記事を生成」を押してください</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="log-card">
+      <div class="card-header">
+        <h3>📋 ログ</h3>
+      </div>
+      <div id="log-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentJobId = null;
+
+  function setTicker(v) {
+    document.getElementById('ticker').value = v;
+  }
+
+  function addLog(msg, cls='') {
+    const el = document.getElementById('log-body');
+    const line = document.createElement('div');
+    line.className = 'log-line ' + cls;
+    line.textContent = new Date().toLocaleTimeString('ja-JP') + '  ' + msg;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function setAgent(key, status) {
+    const el = document.getElementById('a-' + key);
+    if (!el) return;
+    el.className = 'agent-step ' + status;
+    const labels = { running: '⚙️ 処理中...', done: '✅ 完了', '': '⏸ 待機中' };
+    el.querySelector('.status').textContent = labels[status] || '⏸ 待機中';
+  }
+
+  function resetAgents() {
+    ['editor','researcher','analyst','writer','final'].forEach(k => setAgent(k, ''));
+  }
+
+  async function saveApiKey() {
+    const key = document.getElementById('api-key-input').value.trim();
+    if (!key) return alert('APIキーを入力してください');
+    const res = await fetch('/save_key', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({api_key: key})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('api-banner').classList.add('hidden');
+      addLog('APIキーを保存しました ✔', 'ok');
+    } else {
+      alert('保存失敗: ' + data.msg);
+    }
+  }
+
+  async function startGenerate() {
+    const ticker = document.getElementById('ticker').value.trim();
+    if (!ticker) { alert('銘柄名を入力してください'); return; }
+
+    // リセット
+    resetAgents();
+    document.getElementById('article-body').innerHTML =
+      '<div class="placeholder"><div><span class="spinner"></span>生成中...</div></div>';
+    document.getElementById('log-body').innerHTML = '';
+    document.getElementById('dl-btn').style.display = 'none';
+    document.getElementById('gen-btn').disabled = true;
+    document.getElementById('gen-btn').innerHTML = '<span class="spinner"></span>生成中...';
+
+    addLog(`銘柄「${ticker}」の記事生成を開始します`);
+
+    // ジョブ開始
+    const res = await fetch('/generate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ticker})
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      alert(data.msg);
+      resetUI();
+      return;
+    }
+    currentJobId = data.job_id;
+
+    // SSEで進捗受信
+    const evtSource = new EventSource(`/stream/${currentJobId}`);
+    evtSource.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+
+      if (msg.type === 'agent') {
+        setAgent(msg.key, msg.status);
+      } else if (msg.type === 'log') {
+        addLog(msg.msg);
+      } else if (msg.type === 'done') {
+        evtSource.close();
+        showArticle(msg.article);
+        addLog('🎉 記事の生成が完了しました！', 'ok');
+        resetUI();
+      } else if (msg.type === 'error') {
+        evtSource.close();
+        addLog('❌ ' + msg.msg, 'err');
+        document.getElementById('article-body').innerHTML =
+          `<div class="placeholder"><div style="color:#f87171">❌ ${msg.msg}</div></div>`;
+        resetUI();
+      }
+    };
+    evtSource.onerror = () => {
+      evtSource.close();
+      addLog('接続が切れました', 'err');
+      resetUI();
+    };
+  }
+
+  function showArticle(text) {
+    document.getElementById('article-body').textContent = text;
+    const dlBtn = document.getElementById('dl-btn');
+    dlBtn.style.display = 'block';
+    dlBtn.onclick = () => { window.location.href = `/download/${currentJobId}`; };
+  }
+
+  function resetUI() {
+    const btn = document.getElementById('gen-btn');
+    btn.disabled = false;
+    btn.textContent = '▶ 記事を生成';
+  }
+</script>
+
+</body>
+</html>
